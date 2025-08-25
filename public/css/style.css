@@ -1,0 +1,127 @@
+/* Palet Warna & Font */
+:root {
+    --color-bg: #f8f9fa;
+    --color-bg-secondary: #ffffff;
+    --color-border: #dee2e6;
+    --color-text-primary: #212529;
+    --color-text-secondary: #6c757d;
+    --color-primary: #0d6efd;
+    --color-primary-dark: #0759d3;
+}
+body { background-color: var(--color-bg); color: var(--color-text-primary); font-family: 'Poppins', sans-serif; scroll-behavior: smooth; }
+
+/* --- Navbar Efek Kaca --- */
+.navbar-custom { background: rgba(255, 255, 255, 0.7); backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px); border-bottom: 1px solid rgba(0,0,0,0.1); padding: 1rem 0; }
+.navbar-brand { font-weight: 700; font-size: 1.5rem; color: var(--color-text-primary) !important; transition: color 0.2s; }
+.navbar-brand:hover { color: var(--color-primary) !important; }
+.navbar-brand i { color: var(--color-primary); }
+.search-input { border: 1px solid var(--color-border); }
+.search-input:focus { border-color: var(--color-primary); box-shadow: 0 0 0 0.25rem rgba(13, 110, 253, 0.25); }
+
+/* --- Hero Section dengan Latar Animasi --- */
+.hero-section { position: relative; padding: 120px 0; background: linear-gradient(135deg, var(--color-primary), var(--color-primary-dark)); color: white; overflow: hidden; }
+.animated-bg { position: absolute; top: 0; left: 0; width: 100%; height: 100%; background: url('data:image/svg+xml,%3Csvg xmlns="http://www.w3.org/2000/svg" width="100" height="100" viewBox="0 0 100 100"%3E%3Cg fill-rule="evenodd"%3E%3Cg fill="%23ffffff" fill-opacity="0.05"%3E%3Cpath opacity=".5" d="M96 95h4v1h-4v4h-1v-4h-9v4h-1v-4h-9v4h-1v-4h-9v4h-1v-4h-9v4h-1v-4h-9v4h-1v-4h-9v4h-1v-4h-9v4h-1v-4H0v-1h15v-9H0v-1h15v-9H0v-1h15v-9H0v-1h15v-9H0v-1h15v-9H0v-1h15v-9H0v-1h15v-9H0v-1h15V0h1v15h9V0h1v15h9V0h1v15h9V0h1v15h9V0h1v15h9V0h1v15h9V0h1v15h9V0h1v15h4v1h-4v9h4v1h-4v9h4v1h-4v9h4v1h-4v9h4v1h-4v9h4v1h-4v9h4v1h-4v9zm-1 0v-9h-9v9h9zm-10 0v-9h-9v9h9zm-10 0v-9h-9v9h9zm-10 0v-9h-9v9h9zm-10 0v-9h-9v9h9zm-10 0v-9h-9v9h9zm-10 0v-9h-9v9h9zm-10 0v-9h-9v9h9zm-9-10h9v-9h-9v9zm10 0h9v-9h-9v9zm10 0h9v-9h-9v9zm10 0h9v-9h-9v9zm10 0h9v-9h-9v9zm10 0h9v-9h-9v9zm10 0h9v-9h-9v9zm10 0h9v-9h-9v9zm9-10v-9h-9v9h9zm-10 0v-9h-9v9h9zm-10 0v-9h-9v9h9zm-10 0v-9h-9v9h9zm-10 0v-9h-9v9h9zm-10 0v-9h-9v9h9zm-10 0v-9h-9v9h9zm-10 0v-9h-9v9h9zm-9-10h9v-9h-9v9zm10 0h9v-9h-9v9zm10 0h9v-9h-9v9zm10 0h9v-9h-9v9zm10 0h9v-9h-9v9zm10 0h9v-9h-9v9zm10 0h9v-9h-9v9zm10 0h9v-9h-9v9zm9-10v-9h-9v9h9zm-10 0v-9h-9v9h9zm-10 0v-9h-9v9h9zm-10 0v-9h-9v9h9zm-10 0v-9h-9v9h9zm-10 0v-9h-9v9h9zm-10 0v-9h-9v9h9zm-10 0v-9h-9v9h9zm-9-10h9v-9h-9v9zm10 0h9v-9h-9v9zm10 0h9v-9h-9v9zm10 0h9v-9h-9v9zm10 0h9v-9h-9v9zm10 0h9v-9h-9v9zm10 0h9v-9h-9v9zm10 0h9v-9h-9v9z"/%3E%3Cpath d="M6 5V0h1v5h4V0h1v5h4V0h1v5h4V0h1v5h4V0h1v5h4V0h1v5h4V0h1v5h4V0h1v5h4V0h1v5h4V0h1v5h4V0h1v5h9v1h-9v4h9v1h-9v4h9v1h-9v4h9v1h-9v4h9v1h-9v4h9v1h-9v4h9v1h-9v4h9v1h-9v4h9v1h-9v4h9v1h-9v4h-1v-4h-4v4h-1v-4h-4v4h-1v-4h-4v4h-1v-4h-4v4h-1v-4h-4v4h-1v-4h-4v4h-1v-4h-4v4h-1v-4h-4v4h-1v-4h-4v4H6v-4H5v4H4v-4H3v4H2v-4H1v-4h1v-1H1v-4h1v-1H1v-4h1v-1H1v-4h1v-1H1v-4h1v-1H1v-4h1v-1H1v-4h1v-1H1v-4h1v-1H1v-4h1v-1H1V5h1V4h1V3h1V2h1V1h1V0h1v1h1v1h1v1h1v1h1v1h4v-1h1v-1h1v-1h1v-1h1v-1h4v1h1v1h1v1h1v1h1v1h4v-1h1v-1h1v-1h1v-1h1v-1h4v1h1v1h1v1h1v1h1v1h4v-1h1v-1h1v-1h1v-1h1v-1h4v1h1v1h1v1h1v1h1v1h4v-1h1v-1h1v-1h1v-1h1v-1h4v1h1v1h1v1h1v1h1v1H95v1h-4v-1h-1v-1h-1v-1h-1v-1h-1v-1h-4v1h-1v1h-1v1h-1v1h-1v1h-4v-1h-1v-1h-1v-1h-1v-1h-1v-1h-4v1h-1v1h-1v1h-1v1h-1v1h-4v-1h-1v-1h-1v-1h-1v-1h-1v-1h-4v1h-1v1h-1v1h-1v1h-1v1h-4v-1h-1v-1h-1v-1h-1v-1h-1v-1H6v1H5v1H4v1H3v1H2v1h-1v4h1v1h1v1h1v1h1v1h1v4h-1v1h-1v1h-1v1h-1v1h-1v4h1v1h1v1h1v1h1v1h1v4h-1v1h-1v1h-1v1h-1v1h-1v4h1v1h1v1h1v1h1v1h1v4h-1v1h-1v1h-1v1h-1v1h-1v4h1v1h1v1h1v1h1v1h1v4h-1v1h-1v1h-1v1h-1v1h-1v4h1v1h1v1h1v1h1v1h1v4h-1v1h-1v1h-1v1h-1v1h-1v4h1v1h1v1h1v1h1v1h1v4h-1v1h-1v1h-1v1h-1v1h-1v4h1v1h1v1h1v1h1v1h1v4h-1v1h-1v1h-1v1h-1v1h-1v4h1v1h1v1h1v1h1v1h1v4h-1v1h-1v1h-1v1h-1v1h-1v4h1v1h1v1h1v1h1v1h1V95h1V94h1V93h1V92h1V91h1V87h-1v-1h-1v-1h-1v-1h-1v-1h-4v1h-1v1h-1v1h-1v1h-1v1h-4v-1h-1v-1h-1v-1h-1v-1h-1v-1h-4v1h-1v1h-1v1h-1v1h-1v1h-4v-1h-1v-1h-1v-1h-1v-1h-1v-1h-4v1h-1v1h-1v1h-1v1h-1v1h-4v-1h-1v-1h-1v-1h-1v-1h-1v-1h-4v1h-1v1h-1v1h-1v1h-1v1H6v-1H5v-1H4v-1H3v-1H2v-1h-1v-4h1v-1h1v-1h1v-1h1v-1h1v-4h-1v-1h-1v-1h-1v-1h-1v-1h-1v-4h1v-1h1v-1h1v-1h1v-1h1v-4h-1v-1h-1v-1h-1v-1h-1v-1h-1v-4h1v-1h1v-1h1v-1h1v-1h1v-4h-1v-1h-1v-1h-1v-1h-1v-1h-1v-4h1v-1h1v-1h1v-1h1v-1h1v-4h-1v-1h-1v-1h-1v-1h-1v-1h-1v-4h1v-1h1v-1h1v-1h1v-1h1V6h1V5z"/%3E%3C/g%3E%3C/g%3E%3C/svg%3E');
+    animation: floating 20s infinite linear;
+    z-index: 0;
+}
+@keyframes floating { from { transform: translate(0, 0); } to { transform: translate(-100px, -100px); } }
+.hero-section .container { z-index: 1; }
+.hero-title { font-size: 3.5rem; font-weight: 800; }
+.hero-subtitle { font-size: 1.2rem; color: rgba(255, 255, 255, 0.8); max-width: 600px; margin: 1rem auto; }
+.btn-cta { background-color: var(--color-bg-secondary); color: var(--color-primary-dark); font-weight: 700; padding: 12px 30px; border-radius: 50px; transition: all 0.3s ease; box-shadow: 0 4px 15px rgba(0,0,0,0.1); }
+.btn-cta:hover { transform: translateY(-3px); box-shadow: 0 8px 25px rgba(0,0,0,0.15); background-color: white; color: var(--color-primary); }
+
+/* --- BAGIAN BARU: Keunggulan --- */
+.features-section { background-color: var(--color-bg-secondary); }
+.feature-box { padding: 2rem; }
+.feature-icon { font-size: 3rem; color: var(--color-primary); }
+
+/* --- BAGIAN KATALOG --- */
+#katalog { padding-top: 2rem; padding-bottom: 2rem; }
+.section-title-main { font-weight: 700; color: var(--color-text-primary); }
+.custom-select { border: 1px solid var(--color-border); }
+@media (min-width: 992px) { .col-lg-5ths { flex: 0 0 auto; width: 20%; } }
+.product-card { background-color: var(--color-bg-secondary); border: 1px solid var(--color-border); border-radius: 16px; transition: all 0.3s ease; text-align: center; box-shadow: 0 4px 6px rgba(0,0,0,0.05); }
+.product-card:hover { transform: translateY(-8px); box-shadow: 0 10px 20px rgba(0,0,0,0.1), 0 0 20px rgba(13, 110, 253, 0.2); }
+.card-img-top { border-top-left-radius: 16px; border-top-right-radius: 16px; }
+.card-body { padding: 1rem; }
+.card-title { font-size: 0.9rem; font-weight: 600; color: var(--color-text-primary); display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical; overflow: hidden; min-height: 54px; }
+.price-wrap { margin-top: 0.5rem; }
+.price-original { font-size: 0.8rem; color: var(--color-text-secondary); margin-right: 0.5rem; }
+.price-final { font-size: 1.2rem; font-weight: 700; color: var(--color-primary); }
+
+/* --- BAGIAN BARU: CTA Section --- */
+.cta-section { background-color: var(--color-primary-dark); color: white; }
+.cta-section h2 { font-weight: 700; }
+
+/* --- BAGIAN BARU: Footer yang Diperluas --- */
+.footer-custom { background-color: var(--color-bg-secondary); color: var(--color-text-secondary); }
+.footer-custom a { text-decoration: none; transition: color 0.2s; }
+.footer-custom a:hover { color: var(--color-primary); }
+.footer-custom h6 { color: var(--color-text-primary); }
+
+/* --- ADMIN DASHBOARD & DETAIL (Tidak berubah) --- */
+.admin-header { background-color: var(--color-primary); }
+.admin-header h3 { color: white; font-weight: 600; }
+.product-page .product-image-gallery img { border: 1px solid var(--color-border); }
+.product-info .product-title { font-size: 2rem; font-weight: 700; }
+.price-detail-wrap .price-final-detail { font-size: 2.2rem; font-weight: 800; color: var(--color-primary); }
+.description-box { background-color: var(--color-bg-secondary); border: 1px solid var(--color-border); border-radius: 8px; padding: 2rem; }
+
+/* Animasi */
+.reveal { opacity: 0; transform: translateY(30px); transition: opacity 0.8s ease-out, transform 0.6s ease-out; }
+.reveal.active { opacity: 1; transform: translateY(0); }
+
+/* Navigasi Breadcrumb */
+.breadcrumb-nav .breadcrumb {
+    background-color: var(--color-bg-secondary);
+    padding: 0.75rem 1rem;
+    border-radius: 8px;
+    border: 1px solid var(--color-border);
+}
+.breadcrumb-nav .breadcrumb-item a {
+    text-decoration: none;
+    color: var(--color-primary);
+}
+.breadcrumb-nav .breadcrumb-item.active {
+    color: var(--color-text-secondary);
+}
+
+/* Panel Produk Utama */
+.product-panel {
+    background-color: var(--color-bg-secondary);
+    border-radius: 16px;
+    padding: 2rem;
+    box-shadow: 0 8px 25px rgba(0,0,0,0.07);
+    border: 1px solid var(--color-border);
+}
+
+.product-image-gallery img {
+    border-radius: 12px;
+    border: 1px solid var(--color-border);
+}
+
+.product-info .product-title {
+    font-size: 2.2rem;
+    font-weight: 700;
+    color: var(--color-text-primary);
+    line-height: 1.3;
+}
+
+.product-info .option-group {
+    border-top: 1px solid var(--color-border);
+}
+
+.btn-pesan {
+    /* Style sudah ada, kita tambahkan animasi */
+    transition: all 0.3s ease;
+}
+.btn-pesan:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 4px 15px rgba(13, 110, 253, 0.4);
+}
+
+.description-box .description-title {
+    font-weight: 700;
+    color: var(--color-text-primary);
+}
