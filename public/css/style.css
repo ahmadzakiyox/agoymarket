@@ -43,7 +43,13 @@ body { background-color: var(--color-bg); color: var(--color-text-primary); font
 @media (min-width: 992px) { .col-lg-5ths { flex: 0 0 auto; width: 20%; } }
 .product-card { background-color: var(--color-bg-secondary); border: 1px solid var(--color-border); border-radius: 16px; transition: all 0.3s ease; text-align: center; box-shadow: 0 4px 6px rgba(0,0,0,0.05); }
 .product-card:hover { transform: translateY(-8px); box-shadow: 0 10px 20px rgba(0,0,0,0.1), 0 0 20px rgba(13, 110, 253, 0.2); }
-.card-img-top { border-top-left-radius: 16px; border-top-right-radius: 16px; }
+.card-img-top {
+    border-top-left-radius: 16px;
+    border-top-right-radius: 16px;
+    /* The line below might exist and should be removed or changed */
+    height: 200px; 
+    object-fit: cover;
+}
 .card-body { padding: 1rem; }
 .card-title { font-size: 0.9rem; font-weight: 600; color: var(--color-text-primary); display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical; overflow: hidden; min-height: 54px; }
 .price-wrap { margin-top: 0.5rem; }
@@ -63,7 +69,17 @@ body { background-color: var(--color-bg); color: var(--color-text-primary); font
 /* --- ADMIN DASHBOARD & DETAIL (Tidak berubah) --- */
 .admin-header { background-color: var(--color-primary); }
 .admin-header h3 { color: white; font-weight: 600; }
-.product-page .product-image-gallery img { border: 1px solid var(--color-border); }
+/* Membuat gambar di halaman detail produk menjadi 1:1 */
+.product-page .product-image-gallery img {
+    aspect-ratio: 1 / 1;
+    object-fit: cover;
+    width: 100%;
+}
+/* Styling untuk logo di navbar */
+.navbar-logo {
+    height: 40px; /* Atur tinggi logo sesuai kebutuhan Anda */
+    width: auto;  /* Lebar akan menyesuaikan secara otomatis */
+}
 .product-info .product-title { font-size: 2rem; font-weight: 700; }
 .price-detail-wrap .price-final-detail { font-size: 2.2rem; font-weight: 800; color: var(--color-primary); }
 .description-box { background-color: var(--color-bg-secondary); border: 1px solid var(--color-border); border-radius: 8px; padding: 2rem; }
