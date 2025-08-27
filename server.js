@@ -107,6 +107,10 @@ app.post('/api/settings', async (req, res) => {
 
 app.get('/admin', (req, res) => {
     res.sendFile(path.join(__dirname, 'public', 'admin.html'));
+
+app.get('/product-detail', (req, res) => {
+    res.sendFile(path.join(__dirname, 'public', 'product-detail.html'));
+});
 });
 
 // Menjalankan Server
