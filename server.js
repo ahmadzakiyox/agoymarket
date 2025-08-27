@@ -5,6 +5,7 @@ const mongoose = require('mongoose');
 const cors = require('cors');
 const Product = require('./models/product');
 const Setting = require('./models/Settings');
+const path = require('path'); // Modul 'path' diperlukan
 
 const app = express();
 const PORT = 3000;
