@@ -17,149 +17,131 @@ const PORT = 3000;
 app.use(cors());
 app.use(express.json());
 
-// --- MIDDLEWARE PROTEKSI (PENJAGA) ---
-// Kita definisikan middleware di sini agar bisa digunakan di bawah
+// --- Security Middleware (Gatekeeper) ---
 const authMiddleware = (req, res, next) => {
     const authHeader = req.headers['authorization'];
-    // Untuk proteksi halaman, kita cek juga dari cookie atau local storage jika perlu,
-    // tapi untuk API, header sudah cukup. Untuk halaman, kita akan redirect.
-    const token = authHeader && authHeader.split(' ')[1];
-
-    if (!token) {
-        // Jika permintaan API, kirim 401. Jika halaman, bisa redirect.
-        // Untuk sekarang, 401 sudah cukup karena JS di client akan menangani redirect.
-        return res.sendStatus(401);
-    }
+    const token = authHeader && authHeader.split(' ')[1]; // Format: Bearer TOKEN
+    if (!token) return res.sendStatus(401); // Unauthorized if no token
 
     jwt.verify(token, process.env.JWT_SECRET, (err, user) => {
-        if (err) {
-            return res.sendStatus(403);
-        }
+        if (err) return res.sendStatus(403); // Forbidden if token is invalid
         req.user = user;
-        next();
+        next(); // Proceed to the requested route
     });
 };
 
-// --- Rute Halaman (Clean URLs) ---
-// Halaman publik yang tidak perlu login
+// --- Page Routes (Clean URLs) ---
+// Public pages
 app.get('/', (req, res) => res.sendFile(path.join(__dirname, 'public', 'index.html')));
 app.get('/login', (req, res) => res.sendFile(path.join(__dirname, 'public', 'login.html')));
 app.get('/product-detail', (req, res) => res.sendFile(path.join(__dirname, 'public', 'product-detail.html')));
 
-// HALAMAN ADMIN YANG DIPROTEKSI
-// Middleware 'authMiddleware' dijalankan SEBELUM mengirim file
+// Protected Admin Page
 app.get('/admin', authMiddleware, (req, res) => {
     res.sendFile(path.join(__dirname, 'public', 'admin.html'));
 });
 
-// Middleware untuk menyajikan file statis (CSS, JS, gambar)
-// Ini harus diletakkan SETELAH rute halaman khusus kita
+// Serve static files (CSS, public JS, images)
 app.use(express.static('public'));
 
-// --- AUTHENTICATION API ---
+// --- Authentication API ---
 app.post('/api/auth/register', async (req, res) => {
-    // ... (kode ini tidak berubah)
     try {
         const { username, password } = req.body;
         const adminCount = await Admin.countDocuments();
-        if (adminCount > 0) return res.status(400).json({ message: "Registrasi admin sudah ditutup." });
-        const hashedPassword = await bcrypt.hash(password, 10);
+        if (adminCount > 0) return res.status(400).json({ message: "Admin registration is closed." });
+        const hashedPassword = await bcrypt.hash(password, 12);
         const admin = new Admin({ username, password: hashedPassword });
         await admin.save();
-        res.status(201).json({ message: "Admin berhasil dibuat." });
+        res.status(201).json({ message: "Admin created successfully." });
     } catch (error) {
-        res.status(500).json({ message: "Error registrasi", error: error.message });
+        res.status(500).json({ message: "Registration error", error: error.message });
     }
 });
 
 app.post('/api/auth/login', async (req, res) => {
-    // ... (kode ini tidak berubah)
     try {
         const { username, password } = req.body;
         const admin = await Admin.findOne({ username });
-        if (!admin) return res.status(401).json({ message: "Username atau password salah." });
+        if (!admin) return res.status(401).json({ message: "Invalid username or password." });
+        
         const isMatch = await bcrypt.compare(password, admin.password);
-        if (!isMatch) return res.status(401).json({ message: "Username atau password salah." });
+        if (!isMatch) return res.status(401).json({ message: "Invalid username or password." });
+        
         const token = jwt.sign({ id: admin._id }, process.env.JWT_SECRET, { expiresIn: '8h' });
         res.json({ token });
     } catch (error) {
-        res.status(500).json({ message: "Server error saat login" });
+        console.error("Login Server Error:", error);
+        res.status(500).json({ message: "Server error during login" });
     }
 });
 
-// --- API Endpoints yang Diproteksi ---
+// --- Protected API Endpoints ---
 app.post('/api/products', authMiddleware, async (req, res) => {
-    // ... (kode ini tidak berubah)
     try {
         const newProduct = new Product(req.body);
         await newProduct.save();
-        res.status(201).json({ message: 'Produk berhasil ditambahkan', product: newProduct });
+        res.status(201).json({ message: 'Product added successfully', product: newProduct });
     } catch (error) {
-        res.status(500).json({ message: 'Gagal menambahkan produk', error: error.message });
+        res.status(500).json({ message: 'Failed to add product', error: error.message });
     }
 });
 app.put('/api/products/:id', authMiddleware, async (req, res) => {
-    // ... (kode ini tidak berubah)
     try {
         const updatedProduct = await Product.findByIdAndUpdate(req.params.id, req.body, { new: true });
-        if (!updatedProduct) return res.status(404).json({ message: 'Produk tidak ditemukan' });
-        res.status(200).json({ message: 'Produk berhasil diperbarui', product: updatedProduct });
+        if (!updatedProduct) return res.status(404).json({ message: 'Product not found' });
+        res.status(200).json({ message: 'Product updated successfully', product: updatedProduct });
     } catch (error) {
-        res.status(500).json({ message: 'Gagal memperbarui produk', error: error.message });
+        res.status(500).json({ message: 'Failed to update product', error: error.message });
     }
 });
 app.delete('/api/products/:id', authMiddleware, async (req, res) => {
-    // ... (kode ini tidak berubah)
     try {
         const deletedProduct = await Product.findByIdAndDelete(req.params.id);
-        if (!deletedProduct) return res.status(404).json({ message: 'Produk tidak ditemukan' });
-        res.status(200).json({ message: 'Produk berhasil dihapus' });
+        if (!deletedProduct) return res.status(404).json({ message: 'Product not found' });
+        res.status(200).json({ message: 'Product deleted successfully' });
     } catch (error) {
-        res.status(500).json({ message: 'Gagal menghapus produk', error: error.message });
+        res.status(500).json({ message: 'Failed to delete product', error: error.message });
     }
 });
 app.post('/api/settings', authMiddleware, async (req, res) => {
-    // ... (kode ini tidak berubah)
     try {
         const { whatsappNumber, telegramUsername } = req.body;
         const updatedSettings = await Setting.findOneAndUpdate({}, { whatsappNumber, telegramUsername }, { new: true, upsert: true, setDefaultsOnInsert: true });
-        res.status(200).json({ message: 'Pengaturan berhasil disimpan', settings: updatedSettings });
+        res.status(200).json({ message: 'Settings saved successfully', settings: updatedSettings });
     } catch (error) {
-        res.status(500).json({ message: 'Gagal menyimpan pengaturan', error: error.message });
+        res.status(500).json({ message: 'Failed to save settings', error: error.message });
     }
 });
 
-// --- API Endpoints Publik ---
+// --- Public API Endpoints ---
 app.get('/api/products', async (req, res) => {
-    // ... (kode ini tidak berubah)
     try {
         const products = await Product.find().sort({ createdAt: -1 });
         res.status(200).json(products);
     } catch (error) {
-        res.status(500).json({ message: 'Gagal mengambil data produk' });
+        res.status(500).json({ message: 'Failed to fetch products' });
     }
 });
 app.get('/api/products/:id', async (req, res) => {
-    // ... (kode ini tidak berubah)
     try {
         const product = await Product.findById(req.params.id);
-        if (!product) return res.status(404).json({ message: 'Produk tidak ditemukan' });
+        if (!product) return res.status(404).json({ message: 'Product not found' });
         res.status(200).json(product);
     } catch (error) {
-        res.status(500).json({ message: 'Gagal mengambil data produk' });
+        res.status(500).json({ message: 'Failed to fetch product data' });
     }
 });
 app.get('/api/settings', async (req, res) => {
-    // ... (kode ini tidak berubah)
     try {
         const settings = await Setting.findOne() || new Setting();
         res.status(200).json(settings);
     } catch (error) {
-        res.status(500).json({ message: 'Gagal mengambil pengaturan' });
+        res.status(500).json({ message: 'Failed to fetch settings' });
     }
 });
 
-// --- Koneksi DB dan Start Server ---
+// --- Database Connection & Server Start ---
 mongoose.connect(process.env.DATABASE_URL)
     .then(() => {
         console.log('MongoDB connected');
