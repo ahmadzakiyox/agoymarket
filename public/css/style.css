@@ -137,6 +137,10 @@ body { background-color: var(--color-bg); color: var(--color-text-primary); font
     box-shadow: 0 4px 15px rgba(13, 110, 253, 0.4);
 }
 
+.text-orange {
+    color: #fd7e14; /* Bootstrap's standard orange color */
+}
+
 .description-box .description-title {
     font-weight: 700;
     color: var(--color-text-primary);
