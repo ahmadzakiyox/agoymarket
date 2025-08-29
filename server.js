@@ -98,12 +98,16 @@ app.put('/api/products/:id', authMiddleware, async (req, res) => {
 app.delete('/api/products/:id', authMiddleware, async (req, res) => {
     try {
         const deletedProduct = await Product.findByIdAndDelete(req.params.id);
-        if (!deletedProduct) return res.status(404).json({ message: 'Product not found' });
-        res.status(200).json({ message: 'Product deleted successfully' });
+        if (!deletedProduct) {
+            return res.status(404).json({ message: 'Produk tidak ditemukan' });
+        }
+        res.status(200).json({ message: 'Produk berhasil dihapus' });
     } catch (error) {
-        res.status(500).json({ message: 'Failed to delete product', error: error.message });
+        console.error("Delete Product Error:", error); // Untuk debugging di terminal
+        res.status(500).json({ message: 'Gagal menghapus produk', error: error.message });
     }
 });
+
 app.post('/api/settings', authMiddleware, async (req, res) => {
     try {
         const { whatsappNumber, telegramUsername } = req.body;
