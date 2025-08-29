@@ -1,68 +1,44 @@
-// public/js/admin.js (Dengan fungsionalitas CRUD Lengkap)
 document.addEventListener('DOMContentLoaded', function() {
+    // --- Page Protection ---
+    const token = localStorage.getItem('adminToken');
+    if (!token) {
+        window.location.href = '/login'; // Redirect to login page if no token
+        return; // Stop script execution
+    }
+
+    // Set up authorization headers for all API requests
+    const authHeaders = {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${token}`
+    };
+
+    // --- Element Selectors ---
     const productTableBody = document.getElementById('product-table-body');
     const addProductForm = document.getElementById('addProductForm');
     const statusDiv = document.getElementById('status');
     const editModal = new bootstrap.Modal(document.getElementById('editProductModal'));
-    const editForm = document.getElementById('editProductForm');
     const saveEditButton = document.getElementById('saveEditButton');
-    // Tambahkan di dalam event listener DOMContentLoaded
+    const logoutButton = document.getElementById('logoutButton');
 
-const settingsForm = document.getElementById('settingsForm');
-const settingsStatusDiv = document.getElementById('settings-status');
-const whatsappInput = document.getElementById('whatsappNumber');
-const telegramInput = document.getElementById('telegramUsername');
-
-async function loadSettings() {
-    try {
-        const response = await fetch('/api/settings');
-        const settings = await response.json();
-        whatsappInput.value = settings.whatsappNumber ? settings.whatsappNumber.replace(/^62/, '') : '';
-        telegramInput.value = settings.telegramUsername || '';
-    } catch (error) {
-        console.error('Gagal memuat pengaturan:', error);
-    }
-}
-
-settingsForm.addEventListener('submit', async function(event) {
-    event.preventDefault();
-    let whatsappNumber = whatsappInput.value.trim();
-    if (whatsappNumber && !whatsappNumber.startsWith('62')) {
-        whatsappNumber = '62' + whatsappNumber;
-    }
-    const settingsData = {
-        whatsappNumber: whatsappNumber,
-        telegramUsername: telegramInput.value.trim()
-    };
-    settingsStatusDiv.textContent = 'Menyimpan...';
-    try {
-        const response = await fetch('/api/settings', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify(settingsData)
-        });
-        if (!response.ok) throw new Error('Gagal menyimpan');
-        settingsStatusDiv.textContent = 'Pengaturan berhasil disimpan!';
-        settingsStatusDiv.className = 'alert alert-success';
-    } catch (error) {
-        settingsStatusDiv.textContent = 'Error: ' + error.message;
-        settingsStatusDiv.className = 'alert alert-danger';
-    }
-});
-
-loadSettings();
-
-    // --- FUNGSI UTAMA: Ambil dan Tampilkan Produk ---
+    // --- Main Function: Fetch and Display Products ---
     async function fetchAndDisplayProducts() {
         try {
-            const response = await fetch('/api/products');
-            if (!response.ok) throw new Error('Gagal mengambil data produk');
+            const response = await fetch('/api/products', { headers: { 'Authorization': `Bearer ${token}` } });
+            
+            // If token is invalid or expired, redirect to login
+            if (response.status === 401 || response.status === 403) {
+                localStorage.removeItem('adminToken');
+                window.location.href = '/login';
+                return;
+            }
+            if (!response.ok) throw new Error('Failed to fetch products');
             
             const products = await response.json();
-            productTableBody.innerHTML = '';
+            productTableBody.innerHTML = ''; // Clear table before populating
 
             if (products.length === 0) {
-                productTableBody.innerHTML = '<tr><td colspan="5" class="text-center">Belum ada produk.</td></tr>';
+                productTableBody.innerHTML = '<tr><td colspan="5" class="text-center">No products found.</td></tr>';
+                return;
             }
 
             products.forEach(product => {
@@ -76,8 +52,7 @@ loadSettings();
                             <button class="btn btn-sm btn-warning edit-btn" data-id="${product._id}"><i class="fa-solid fa-pen-to-square"></i></button>
                             <button class="btn btn-sm btn-danger delete-btn" data-id="${product._id}"><i class="fa-solid fa-trash"></i></button>
                         </td>
-                    </tr>
-                `;
+                    </tr>`;
                 productTableBody.innerHTML += row;
             });
         } catch (error) {
@@ -85,7 +60,7 @@ loadSettings();
         }
     }
 
-    // --- FUNGSI 2: Tambah Produk Baru ---
+    // --- Add New Product ---
     addProductForm.addEventListener('submit', async function(event) {
         event.preventDefault();
         const productData = {
@@ -96,71 +71,69 @@ loadSettings();
             deskripsi: document.getElementById('deskripsi').value,
         };
         
-        statusDiv.textContent = 'Menambahkan...';
+        statusDiv.textContent = 'Adding...';
         statusDiv.className = 'alert alert-info';
-
         try {
-            const response = await fetch('/api/products', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify(productData)
-            });
+            const response = await fetch('/api/products', { method: 'POST', headers: authHeaders, body: JSON.stringify(productData) });
             const result = await response.json();
             if (!response.ok) throw new Error(result.message);
-            statusDiv.textContent = 'Produk berhasil ditambahkan!';
+            statusDiv.textContent = 'Product added successfully!';
             statusDiv.className = 'alert alert-success';
             addProductForm.reset();
-            fetchAndDisplayProducts();
+            fetchAndDisplayProducts(); // Refresh the table
         } catch (error) {
             statusDiv.textContent = 'Error: ' + error.message;
             statusDiv.className = 'alert alert-danger';
         }
     });
 
-    // --- FUNGSI 3: Menangani Klik di Tabel (untuk Edit dan Delete) ---
+    // --- Handle Edit and Delete Button Clicks ---
     productTableBody.addEventListener('click', async function(event) {
         const target = event.target.closest('button');
         if (!target) return;
-
+        
         const productId = target.dataset.id;
 
-        // Jika tombol DELETE yang diklik
+        // Handle Delete
         if (target.classList.contains('delete-btn')) {
-            if (confirm('Apakah Anda yakin ingin menghapus produk ini?')) {
+            if (confirm('Are you sure you want to delete this product?')) {
                 try {
-                    const response = await fetch(`/api/products/${productId}`, { method: 'DELETE' });
+                    const response = await fetch(`/api/products/${productId}`, { 
+                        method: 'DELETE',
+                        headers: { 'Authorization': `Bearer ${token}` } 
+                    });
                     const result = await response.json();
                     if (!response.ok) throw new Error(result.message);
-                    fetchAndDisplayProducts(); // Muat ulang tabel
+                    fetchAndDisplayProducts(); // Refresh the table
                 } catch (error) {
-                    alert('Gagal menghapus produk: ' + error.message);
+                    alert('Failed to delete product: ' + error.message);
                 }
             }
         }
 
-        // Jika tombol EDIT yang diklik
+        // Handle Edit
         if (target.classList.contains('edit-btn')) {
             try {
-                const response = await fetch(`/api/products/${productId}`);
-                if (!response.ok) throw new Error('Gagal mengambil detail produk');
+                const response = await fetch(`/api/products/${productId}`, {
+                    headers: { 'Authorization': `Bearer ${token}` }
+                });
+                if (!response.ok) throw new Error('Failed to fetch product details');
                 const product = await response.json();
                 
-                // Isi form di modal dengan data produk
                 document.getElementById('edit-productId').value = product._id;
                 document.getElementById('edit-nama').value = product.nama;
                 document.getElementById('edit-gambar').value = product.gambar;
                 document.getElementById('edit-harga').value = product.harga;
                 document.getElementById('edit-stok').value = product.stok;
                 document.getElementById('edit-deskripsi').value = product.deskripsi;
-
-                editModal.show(); // Tampilkan modal
+                editModal.show(); // Show the modal with populated data
             } catch (error) {
                  alert('Error: ' + error.message);
             }
         }
     });
-
-    // --- FUNGSI 4: Simpan Perubahan dari Modal Edit ---
+    
+    // --- Save Changes from Edit Modal ---
     saveEditButton.addEventListener('click', async function() {
         const productId = document.getElementById('edit-productId').value;
         const updatedData = {
@@ -170,37 +143,56 @@ loadSettings();
             stok: document.getElementById('edit-stok').value,
             deskripsi: document.getElementById('edit-deskripsi').value,
         };
-
         try {
-            const response = await fetch(`/api/products/${productId}`, {
-                method: 'PUT',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify(updatedData)
-            });
+            const response = await fetch(`/api/products/${productId}`, { method: 'PUT', headers: authHeaders, body: JSON.stringify(updatedData) });
             const result = await response.json();
             if (!response.ok) throw new Error(result.message);
-
-            editModal.hide(); // Sembunyikan modal
-            fetchAndDisplayProducts(); // Muat ulang tabel
+            editModal.hide();
+            fetchAndDisplayProducts(); // Refresh the table
         } catch (error) {
-            alert('Gagal menyimpan perubahan: ' + error.message);
+            alert('Failed to save changes: ' + error.message);
         }
     });
 
-    const token = localStorage.getItem('adminToken');
-if (!token) {
-    // Jika tidak ada token, paksa kembali ke halaman login
-    window.location.href = '/login';
-}
+    // --- Contact Settings ---
+    const settingsForm = document.getElementById('settingsForm');
+    const settingsStatusDiv = document.getElementById('settings-status');
+    const whatsappInput = document.getElementById('whatsappNumber');
+    const telegramInput = document.getElementById('telegramUsername');
 
-// Siapkan header otorisasi untuk semua permintaan API dari halaman ini
-const authHeaders = {
-    'Content-Type': 'application/json',
-    'Authorization': `Bearer ${token}`
-};
+    async function loadSettings() {
+        try {
+            const response = await fetch('/api/settings', { headers: { 'Authorization': `Bearer ${token}` } });
+            const settings = await response.json();
+            whatsappInput.value = settings.whatsappNumber ? settings.whatsappNumber.replace(/^62/, '') : '';
+            telegramInput.value = settings.telegramUsername || '';
+        } catch (error) { console.error('Failed to load settings:', error); }
+    }
 
+    settingsForm.addEventListener('submit', async function(event) {
+        event.preventDefault();
+        let whatsappNumber = whatsappInput.value.trim();
+        if (whatsappNumber && !whatsappNumber.startsWith('62')) { whatsappNumber = '62' + whatsappNumber; }
+        const settingsData = { whatsappNumber: whatsappNumber, telegramUsername: telegramInput.value.trim() };
+        settingsStatusDiv.textContent = 'Saving...';
+        try {
+            const response = await fetch('/api/settings', { method: 'POST', headers: authHeaders, body: JSON.stringify(settingsData) });
+            if (!response.ok) throw new Error('Failed to save');
+            settingsStatusDiv.textContent = 'Settings saved successfully!';
+            settingsStatusDiv.className = 'alert alert-success';
+        } catch (error) {
+            settingsStatusDiv.textContent = 'Error: ' + error.message;
+            settingsStatusDiv.className = 'alert alert-danger';
+        }
+    });
 
-
-    // Panggil fungsi utama saat halaman dimuat
+    // --- Logout ---
+    logoutButton.addEventListener('click', () => {
+        localStorage.removeItem('adminToken');
+        window.location.href = '/login';
+    });
+    
+    // --- Initial Calls on Page Load ---
     fetchAndDisplayProducts();
+    loadSettings();
 });
