@@ -5,10 +5,9 @@ const mongoose = require('mongoose');
 const cors = require('cors');
 const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
-const path = require('path'); // Tambahkan ini di bagian atas
 
 // Impor semua model yang dibutuhkan
-const Product = require('./models/product');
+const Product = require('./models/Product');
 const Setting = require('./models/Setting');
 const Admin = require('./models/Admin');
 
@@ -46,28 +45,16 @@ app.post('/api/auth/register', async (req, res) => {
 app.post('/api/auth/login', async (req, res) => {
     try {
         const { username, password } = req.body;
-        
-        // 1. Cari admin berdasarkan username
         const admin = await Admin.findOne({ username });
-        if (!admin) {
-            // Jika username tidak ditemukan, kirim error
-            return res.status(401).json({ message: "Username atau password salah." });
-        }
+        if (!admin) return res.status(401).json({ message: "Username atau password salah." });
         
-        // 2. Bandingkan password yang diinput dengan yang ada di database
         const isMatch = await bcrypt.compare(password, admin.password);
-        if (!isMatch) {
-            // Jika password tidak cocok, kirim error
-            return res.status(401).json({ message: "Username atau password salah." });
-        }
+        if (!isMatch) return res.status(401).json({ message: "Username atau password salah." });
         
-        // 3. Jika cocok, buat dan kirim token
         const token = jwt.sign({ id: admin._id }, process.env.JWT_SECRET, { expiresIn: '8h' });
         res.json({ token });
-        
     } catch (error) {
-        // Jika terjadi error lain (misal: koneksi db putus), kirim status 500
-        console.error("Login Server Error:", error); // Tambahkan ini untuk melihat detail error di terminal
+        console.error("Login Server Error:", error); // Added for better debugging
         res.status(500).json({ message: "Server error saat login" });
     }
 });
@@ -155,24 +142,5 @@ app.get('/api/settings', async (req, res) => {
     }
 });
 
-// --- Rute Halaman (Clean URLs) ---
-// Menangani permintaan ke halaman utama
-app.get('/', (req, res) => {
-    res.sendFile(path.join(__dirname, 'public', 'index.html'));
-});
-
-// Menangani permintaan ke halaman admin, login, dan detail produk
-app.get('/admin', (req, res) => {
-    res.sendFile(path.join(__dirname, 'public', 'admin.html'));
-});
-app.get('/login', (req, res) => {
-    res.sendFile(path.join(__dirname, 'public', 'login.html'));
-});
-app.get('/product-detail', (req, res) => {
-    res.sendFile(path.join(__dirname, 'public', 'product-detail.html'));
-});
-
-// Middleware untuk file statis (CSS, JS, gambar)
-app.use(express.static('public'));
-
+// Menjalankan Server
 app.listen(PORT, () => console.log(`Server running on http://localhost:${PORT}`));
