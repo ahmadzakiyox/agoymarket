@@ -5,6 +5,7 @@ const mongoose = require('mongoose');
 const cors = require('cors');
 const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
+const path = require('path'); // Tambahkan ini di bagian atas
 
 // Impor semua model yang dibutuhkan
 const Product = require('./models/Product');
@@ -140,5 +141,25 @@ app.get('/api/settings', async (req, res) => {
         res.status(500).json({ message: 'Gagal mengambil pengaturan' });
     }
 });
+
+// --- Rute Halaman (Clean URLs) ---
+// Menangani permintaan ke halaman utama
+app.get('/', (req, res) => {
+    res.sendFile(path.join(__dirname, 'public', 'index.html'));
+});
+
+// Menangani permintaan ke halaman admin, login, dan detail produk
+app.get('/admin', (req, res) => {
+    res.sendFile(path.join(__dirname, 'public', 'admin.html'));
+});
+app.get('/login', (req, res) => {
+    res.sendFile(path.join(__dirname, 'public', 'login.html'));
+});
+app.get('/product-detail', (req, res) => {
+    res.sendFile(path.join(__dirname, 'public', 'product-detail.html'));
+});
+
+// Middleware untuk file statis (CSS, JS, gambar)
+app.use(express.static('public'));
 
 app.listen(PORT, () => console.log(`Server running on http://localhost:${PORT}`));
