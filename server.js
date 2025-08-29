@@ -7,7 +7,7 @@ const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
 
 // Impor semua model yang dibutuhkan
-const Product = require('./models/Product');
+const Product = require('./models/product');
 const Setting = require('./models/Setting');
 const Admin = require('./models/Admin');
 
