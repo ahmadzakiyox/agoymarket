@@ -1,12 +1,12 @@
 document.addEventListener('DOMContentLoaded', function() {
-    // --- Page Protection ---
-    const token = localStorage.getItem('adminToken');
+ const token = localStorage.getItem('adminToken');
     if (!token) {
-        window.location.href = '/login'; // Redirect to login page if no token
-        return; // Stop script execution
+        // Jika tidak ada token sama sekali, paksa kembali ke halaman login
+        window.location.href = '/login';
+        return; // Hentikan eksekusi script
     }
 
-    // Set up authorization headers for all API requests
+    // Siapkan header otorisasi untuk semua permintaan API dari halaman ini
     const authHeaders = {
         'Content-Type': 'application/json',
         'Authorization': `Bearer ${token}`
