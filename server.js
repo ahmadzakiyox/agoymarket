@@ -46,15 +46,28 @@ app.post('/api/auth/register', async (req, res) => {
 app.post('/api/auth/login', async (req, res) => {
     try {
         const { username, password } = req.body;
+        
+        // 1. Cari admin berdasarkan username
         const admin = await Admin.findOne({ username });
-        if (!admin) return res.status(401).json({ message: "Username atau password salah." });
+        if (!admin) {
+            // Jika username tidak ditemukan, kirim error
+            return res.status(401).json({ message: "Username atau password salah." });
+        }
         
+        // 2. Bandingkan password yang diinput dengan yang ada di database
         const isMatch = await bcrypt.compare(password, admin.password);
-        if (!isMatch) return res.status(401).json({ message: "Username atau password salah." });
+        if (!isMatch) {
+            // Jika password tidak cocok, kirim error
+            return res.status(401).json({ message: "Username atau password salah." });
+        }
         
+        // 3. Jika cocok, buat dan kirim token
         const token = jwt.sign({ id: admin._id }, process.env.JWT_SECRET, { expiresIn: '8h' });
         res.json({ token });
+        
     } catch (error) {
+        // Jika terjadi error lain (misal: koneksi db putus), kirim status 500
+        console.error("Login Server Error:", error); // Tambahkan ini untuk melihat detail error di terminal
         res.status(500).json({ message: "Server error saat login" });
     }
 });
