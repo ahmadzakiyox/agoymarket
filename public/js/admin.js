@@ -21,9 +21,11 @@ document.addEventListener('DOMContentLoaded', function() {
     const logoutButton = document.getElementById('logoutButton');
 
     // --- Main Function: Fetch and Display Products ---
-    async function fetchAndDisplayProducts() {
-        try {
-            const response = await fetch('/api/products', { headers: { 'Authorization': `Bearer ${token}` } });
+async function fetchAndDisplayProducts() {
+    try {
+        const response = await fetch('/api/products', {
+            headers: { 'Authorization': `Bearer ${token}` } // Pastikan baris ini ada
+        });
             
             // If token is invalid or expired, redirect to login
             if (response.status === 401 || response.status === 403) {
