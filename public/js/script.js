@@ -1,4 +1,3 @@
-// public/js/script.js
 document.addEventListener('DOMContentLoaded', async function() {
     const productList = document.getElementById('productList');
 
@@ -20,13 +19,13 @@ document.addEventListener('DOMContentLoaded', async function() {
             productList.innerHTML = '<p>Belum ada produk.</p>';
             return;
         }
-        products.forEach(product => {
+        products.forEach((product, index) => {
             const hargaCoretHTML = product.hargaCoret ? `<span class="price-original"><s>Rp ${product.hargaCoret.toLocaleString('id-ID')}</s></span>` : '';
             const productCardHTML = `
-                <div class="col-6 col-md-4 col-lg-5ths product-item reveal">
+                <div class="col-6 col-md-4 col-lg-5ths product-item reveal" data-index="${index}">
                     <div class="card product-card">
-                        <a href="/product-detail.html?id=${product._id}" class="text-decoration-none">
-                            <img src="${product.gambar}" class="card-img-top" alt="${product.nama}" style="height: 200px; object-fit: cover;">
+                        <a href="/product-detail?id=${product._id}" class="text-decoration-none">
+                            <img src="${product.gambar}" class="card-img-top" alt="${product.nama}">
                             <div class="card-body">
                                 <h6 class="card-title product-name">${product.nama}</h6>
                                 <div class="price-wrap">
@@ -36,8 +35,7 @@ document.addEventListener('DOMContentLoaded', async function() {
                             </div>
                         </a>
                     </div>
-                </div>
-            `;
+                </div>`;
             productList.innerHTML += productCardHTML;
         });
         setupAnimations();
@@ -48,6 +46,8 @@ document.addEventListener('DOMContentLoaded', async function() {
         const revealObserver = new IntersectionObserver((entries, observer) => {
             entries.forEach(entry => {
                 if (entry.isIntersecting) {
+                    const delay = (entry.target.dataset.index % 5) * 100;
+                    entry.target.style.transitionDelay = `${delay}ms`;
                     entry.target.classList.add('active');
                     observer.unobserve(entry.target);
                 }
@@ -57,4 +57,5 @@ document.addEventListener('DOMContentLoaded', async function() {
     }
 
     fetchProducts();
+    setupAnimations();
 });
