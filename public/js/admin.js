@@ -187,6 +187,19 @@ loadSettings();
         }
     });
 
+    const token = localStorage.getItem('adminToken');
+if (!token) {
+    // Jika tidak ada token, paksa kembali ke halaman login
+    window.location.href = '/login';
+}
+
+// Siapkan header otorisasi untuk semua permintaan API dari halaman ini
+const authHeaders = {
+    'Content-Type': 'application/json',
+    'Authorization': `Bearer ${token}`
+};
+
+
 
     // Panggil fungsi utama saat halaman dimuat
     fetchAndDisplayProducts();
