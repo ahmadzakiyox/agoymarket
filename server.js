@@ -1,11 +1,15 @@
-// server.js (Dengan fungsionalitas CRUD Lengkap)
+// server.js (Dengan Sistem Login & Proteksi)
 require('dotenv').config();
 const express = require('express');
 const mongoose = require('mongoose');
 const cors = require('cors');
-const Product = require('./models/product');
-const Setting = require('./models/Settings');
-const path = require('path'); // Modul 'path' diperlukan
+const bcrypt = require('bcryptjs');
+const jwt = require('jsonwebtoken');
+
+// Impor semua model yang dibutuhkan
+const Product = require('./models/Product');
+const Setting = require('./models/Setting');
+const Admin = require('./models/Admin');
 
 const app = express();
 const PORT = 3000;
@@ -13,7 +17,7 @@ const PORT = 3000;
 // Middleware
 app.use(cors());
 app.use(express.json());
-app.use(express.static(path.join(__dirname, 'public')));
+app.use(express.static('public'));
 
 // Koneksi ke MongoDB
 const mongoURI = process.env.DATABASE_URL;
@@ -21,10 +25,54 @@ mongoose.connect(mongoURI)
     .then(() => console.log('MongoDB connected'))
     .catch(err => console.error(err));
 
-// --- API Endpoints ---
+// --- AUTHENTICATION ---
+app.post('/api/auth/register', async (req, res) => {
+    try {
+        const { username, password } = req.body;
+        const adminCount = await Admin.countDocuments();
+        if (adminCount > 0) {
+            return res.status(400).json({ message: "Registrasi admin sudah ditutup." });
+        }
+        const hashedPassword = await bcrypt.hash(password, 10);
+        const admin = new Admin({ username, password: hashedPassword });
+        await admin.save();
+        res.status(201).json({ message: "Admin berhasil dibuat." });
+    } catch (error) {
+        res.status(500).json({ message: "Error registrasi", error: error.message });
+    }
+});
 
-// Create (POST) - Menambah produk baru
-app.post('/api/products', async (req, res) => {
+app.post('/api/auth/login', async (req, res) => {
+    try {
+        const { username, password } = req.body;
+        const admin = await Admin.findOne({ username });
+        if (!admin) return res.status(401).json({ message: "Username atau password salah." });
+        
+        const isMatch = await bcrypt.compare(password, admin.password);
+        if (!isMatch) return res.status(401).json({ message: "Username atau password salah." });
+        
+        const token = jwt.sign({ id: admin._id }, process.env.JWT_SECRET, { expiresIn: '8h' });
+        res.json({ token });
+    } catch (error) {
+        res.status(500).json({ message: "Server error saat login" });
+    }
+});
+
+// --- MIDDLEWARE PROTEKSI (PENJAGA) ---
+const authMiddleware = (req, res, next) => {
+    const authHeader = req.headers['authorization'];
+    const token = authHeader && authHeader.split(' ')[1]; // Bearer TOKEN
+    if (!token) return res.sendStatus(401);
+
+    jwt.verify(token, process.env.JWT_SECRET, (err, user) => {
+        if (err) return res.sendStatus(403);
+        req.user = user;
+        next();
+    });
+};
+
+// --- API Endpoints yang Diproteksi (Butuh Login) ---
+app.post('/api/products', authMiddleware, async (req, res) => {
     try {
         const newProduct = new Product(req.body);
         await newProduct.save();
@@ -34,7 +82,37 @@ app.post('/api/products', async (req, res) => {
     }
 });
 
-// Read (GET) - Mendapatkan semua produk
+app.put('/api/products/:id', authMiddleware, async (req, res) => {
+    try {
+        const updatedProduct = await Product.findByIdAndUpdate(req.params.id, req.body, { new: true });
+        if (!updatedProduct) return res.status(404).json({ message: 'Produk tidak ditemukan' });
+        res.status(200).json({ message: 'Produk berhasil diperbarui', product: updatedProduct });
+    } catch (error) {
+        res.status(500).json({ message: 'Gagal memperbarui produk', error: error.message });
+    }
+});
+
+app.delete('/api/products/:id', authMiddleware, async (req, res) => {
+    try {
+        const deletedProduct = await Product.findByIdAndDelete(req.params.id);
+        if (!deletedProduct) return res.status(404).json({ message: 'Produk tidak ditemukan' });
+        res.status(200).json({ message: 'Produk berhasil dihapus' });
+    } catch (error) {
+        res.status(500).json({ message: 'Gagal menghapus produk', error: error.message });
+    }
+});
+
+app.post('/api/settings', authMiddleware, async (req, res) => {
+    try {
+        const { whatsappNumber, telegramUsername } = req.body;
+        const updatedSettings = await Setting.findOneAndUpdate({}, { whatsappNumber, telegramUsername }, { new: true, upsert: true, setDefaultsOnInsert: true });
+        res.status(200).json({ message: 'Pengaturan berhasil disimpan', settings: updatedSettings });
+    } catch (error) {
+        res.status(500).json({ message: 'Gagal menyimpan pengaturan', error: error.message });
+    }
+});
+
+// --- API Endpoints Publik (Tidak Butuh Login) ---
 app.get('/api/products', async (req, res) => {
     try {
         const products = await Product.find().sort({ createdAt: -1 });
@@ -44,7 +122,6 @@ app.get('/api/products', async (req, res) => {
     }
 });
 
-// Read (GET) - Mendapatkan satu produk by ID
 app.get('/api/products/:id', async (req, res) => {
     try {
         const product = await Product.findById(req.params.id);
@@ -55,34 +132,6 @@ app.get('/api/products/:id', async (req, res) => {
     }
 });
 
-// Update (PUT) - Mengedit produk by ID
-app.put('/api/products/:id', async (req, res) => {
-    try {
-        const updatedProduct = await Product.findByIdAndUpdate(
-            req.params.id, 
-            req.body, 
-            { new: true } // Mengembalikan dokumen yang sudah diperbarui
-        );
-        if (!updatedProduct) return res.status(404).json({ message: 'Produk tidak ditemukan' });
-        res.status(200).json({ message: 'Produk berhasil diperbarui', product: updatedProduct });
-    } catch (error) {
-        res.status(500).json({ message: 'Gagal memperbarui produk', error: error.message });
-    }
-});
-
-// Delete (DELETE) - Menghapus produk by ID
-app.delete('/api/products/:id', async (req, res) => {
-    try {
-        const deletedProduct = await Product.findByIdAndDelete(req.params.id);
-        if (!deletedProduct) return res.status(404).json({ message: 'Produk tidak ditemukan' });
-        res.status(200).json({ message: 'Produk berhasil dihapus' });
-    } catch (error) {
-        res.status(500).json({ message: 'Gagal menghapus produk', error: error.message });
-    }
-});
-
-// Tambahkan endpoint ini di bawah endpoint produk lainnya
-// GET - Ambil data pengaturan
 app.get('/api/settings', async (req, res) => {
     try {
         const settings = await Setting.findOne() || new Setting();
@@ -92,27 +141,4 @@ app.get('/api/settings', async (req, res) => {
     }
 });
 
-// POST - Simpan atau perbarui data pengaturan
-app.post('/api/settings', async (req, res) => {
-    try {
-        const { whatsappNumber, telegramUsername } = req.body;
-        const updatedSettings = await Setting.findOneAndUpdate({}, 
-            { whatsappNumber, telegramUsername },
-            { new: true, upsert: true, setDefaultsOnInsert: true }
-        );
-        res.status(200).json({ message: 'Pengaturan berhasil disimpan', settings: updatedSettings });
-    } catch (error) {
-        res.status(500).json({ message: 'Gagal menyimpan pengaturan', error: error.message });
-    }
-});
-
-app.get('/admin', (req, res) => {
-    res.sendFile(path.join(__dirname, 'public', 'admin.html'));
-
-app.get('/product-detail', (req, res) => {
-    res.sendFile(path.join(__dirname, 'public', 'product-detail.html'));
-});
-});
-
-// Menjalankan Server
 app.listen(PORT, () => console.log(`Server running on http://localhost:${PORT}`));
