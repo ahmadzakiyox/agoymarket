@@ -13,37 +13,52 @@ const Admin = require('./models/Admin');
 const app = express();
 const PORT = 3000;
 
+// Middleware
 app.use(cors());
 app.use(express.json());
 
-// --- Rute Halaman (Clean URLs) ---
-app.get('/', (req, res) => res.sendFile(path.join(__dirname, 'public', 'index.html')));
-app.get('/login', (req, res) => res.sendFile(path.join(__dirname, 'public', 'login.html')));
-app.get('/product-detail', (req, res) => res.sendFile(path.join(__dirname, 'public', 'product-detail.html')));
-
+// --- MIDDLEWARE PROTEKSI (PENJAGA) ---
+// Kita definisikan middleware di sini agar bisa digunakan di bawah
 const authMiddleware = (req, res, next) => {
     const authHeader = req.headers['authorization'];
+    // Untuk proteksi halaman, kita cek juga dari cookie atau local storage jika perlu,
+    // tapi untuk API, header sudah cukup. Untuk halaman, kita akan redirect.
     const token = authHeader && authHeader.split(' ')[1];
-    if (!token) return res.sendStatus(401);
+
+    if (!token) {
+        // Jika permintaan API, kirim 401. Jika halaman, bisa redirect.
+        // Untuk sekarang, 401 sudah cukup karena JS di client akan menangani redirect.
+        return res.sendStatus(401);
+    }
+
     jwt.verify(token, process.env.JWT_SECRET, (err, user) => {
-        if (err) return res.sendStatus(403);
+        if (err) {
+            return res.sendStatus(403);
+        }
         req.user = user;
         next();
     });
 };
 
+// --- Rute Halaman (Clean URLs) ---
+// Halaman publik yang tidak perlu login
+app.get('/', (req, res) => res.sendFile(path.join(__dirname, 'public', 'index.html')));
+app.get('/login', (req, res) => res.sendFile(path.join(__dirname, 'public', 'login.html')));
+app.get('/product-detail', (req, res) => res.sendFile(path.join(__dirname, 'public', 'product-detail.html')));
+
+// HALAMAN ADMIN YANG DIPROTEKSI
+// Middleware 'authMiddleware' dijalankan SEBELUM mengirim file
 app.get('/admin', authMiddleware, (req, res) => {
     res.sendFile(path.join(__dirname, 'public', 'admin.html'));
 });
 
+// Middleware untuk menyajikan file statis (CSS, JS, gambar)
+// Ini harus diletakkan SETELAH rute halaman khusus kita
 app.use(express.static('public'));
 
-mongoose.connect(process.env.DATABASE_URL)
-    .then(() => console.log('MongoDB connected'))
-    .catch(err => console.error(err));
-
-// --- AUTHENTICATION ---
+// --- AUTHENTICATION API ---
 app.post('/api/auth/register', async (req, res) => {
+    // ... (kode ini tidak berubah)
     try {
         const { username, password } = req.body;
         const adminCount = await Admin.countDocuments();
@@ -58,6 +73,7 @@ app.post('/api/auth/register', async (req, res) => {
 });
 
 app.post('/api/auth/login', async (req, res) => {
+    // ... (kode ini tidak berubah)
     try {
         const { username, password } = req.body;
         const admin = await Admin.findOne({ username });
@@ -73,6 +89,7 @@ app.post('/api/auth/login', async (req, res) => {
 
 // --- API Endpoints yang Diproteksi ---
 app.post('/api/products', authMiddleware, async (req, res) => {
+    // ... (kode ini tidak berubah)
     try {
         const newProduct = new Product(req.body);
         await newProduct.save();
@@ -82,6 +99,7 @@ app.post('/api/products', authMiddleware, async (req, res) => {
     }
 });
 app.put('/api/products/:id', authMiddleware, async (req, res) => {
+    // ... (kode ini tidak berubah)
     try {
         const updatedProduct = await Product.findByIdAndUpdate(req.params.id, req.body, { new: true });
         if (!updatedProduct) return res.status(404).json({ message: 'Produk tidak ditemukan' });
@@ -91,6 +109,7 @@ app.put('/api/products/:id', authMiddleware, async (req, res) => {
     }
 });
 app.delete('/api/products/:id', authMiddleware, async (req, res) => {
+    // ... (kode ini tidak berubah)
     try {
         const deletedProduct = await Product.findByIdAndDelete(req.params.id);
         if (!deletedProduct) return res.status(404).json({ message: 'Produk tidak ditemukan' });
@@ -100,6 +119,7 @@ app.delete('/api/products/:id', authMiddleware, async (req, res) => {
     }
 });
 app.post('/api/settings', authMiddleware, async (req, res) => {
+    // ... (kode ini tidak berubah)
     try {
         const { whatsappNumber, telegramUsername } = req.body;
         const updatedSettings = await Setting.findOneAndUpdate({}, { whatsappNumber, telegramUsername }, { new: true, upsert: true, setDefaultsOnInsert: true });
@@ -111,6 +131,7 @@ app.post('/api/settings', authMiddleware, async (req, res) => {
 
 // --- API Endpoints Publik ---
 app.get('/api/products', async (req, res) => {
+    // ... (kode ini tidak berubah)
     try {
         const products = await Product.find().sort({ createdAt: -1 });
         res.status(200).json(products);
@@ -119,6 +140,7 @@ app.get('/api/products', async (req, res) => {
     }
 });
 app.get('/api/products/:id', async (req, res) => {
+    // ... (kode ini tidak berubah)
     try {
         const product = await Product.findById(req.params.id);
         if (!product) return res.status(404).json({ message: 'Produk tidak ditemukan' });
@@ -128,6 +150,7 @@ app.get('/api/products/:id', async (req, res) => {
     }
 });
 app.get('/api/settings', async (req, res) => {
+    // ... (kode ini tidak berubah)
     try {
         const settings = await Setting.findOne() || new Setting();
         res.status(200).json(settings);
@@ -136,4 +159,10 @@ app.get('/api/settings', async (req, res) => {
     }
 });
 
-app.listen(PORT, () => console.log(`Server running on http://localhost:${PORT}`));
+// --- Koneksi DB dan Start Server ---
+mongoose.connect(process.env.DATABASE_URL)
+    .then(() => {
+        console.log('MongoDB connected');
+        app.listen(PORT, () => console.log(`Server running on http://localhost:${PORT}`));
+    })
+    .catch(err => console.error(err));
